@@ -8,7 +8,7 @@ my $createBranches = $ARGV[2]; # 'y' if you want to create branches (only when s
 # find all objects (blobs, trees, commits, tags) in .git/objects
 ##################################################################
 
-my %AllSha1 = {};
+my %AllSha1;
 
 # scan the packed and non-packed files
 my @AllFiles = `find .git/objects/`;
@@ -53,7 +53,7 @@ for my $foundSha1 (keys %AllSha1) {
 					my $commitSha1 = `git commit-tree $foundSha1 -m "found $pattern"`;
 					`git branch $branchName $commitSha1`;
 				}
-				break;
+				last;
 			}
 		}
 	}
