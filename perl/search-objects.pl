@@ -8,13 +8,7 @@ my $createBranches = $ARGV[2]; # 'y' if you want to create branches (only when s
 # find all objects (blobs, trees, commits, tags) in .git/objects
 ##################################################################
 
-my @AllSha1 = ();
-
-# scan the packed files
-my @PackedFiles = `find .git/objects/pack -name 'pack-*.idx'`;
-for my $pf (@PackedFiles) {
-    push(@AllSha1, $sha1);
-}
+my %AllSha1 = {};
 
 # scan the packed and non-packed files
 my @AllFiles = `find .git/objects/`;
@@ -22,7 +16,7 @@ for my $f (@AllFiles) {
 	if($f =~ /([0-9a-f][0-9a-f])\/([0-9a-f]{38})/) {
         # non-packed
 		my $sha1 = $1 . $2;
-		push(@AllSha1, $sha1);
+		$AllSha1{$sha1} = 1;
 	}
 	elsif($f =~ /idx$/) {
 	    # packed 
@@ -30,7 +24,7 @@ for my $f (@AllFiles) {
         for my $indexLine (@IndexContent) {
             my @IndexLineParts = split(/ /, $indexLine);
             my $sha1 = $IndexLineParts[1];
-            push(@AllSha1, $sha1);
+    		$AllSha1{$sha1} = 1;
         }
 	}
 }
@@ -40,7 +34,7 @@ for my $f (@AllFiles) {
 ##################################################################
 
 my $ctr = 0;
-for my $foundSha1 (@AllSha1) {
+for my $foundSha1 (keys %AllSha1) {
 	chomp $foundSha1;
 	next if length($foundSha1) == 0;
 	my $t = `git cat-file -t $foundSha1`;
