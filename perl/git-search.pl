@@ -8,9 +8,13 @@ my $createBranches = $ARGV[2]; # 'y' if you want to create branches (only when s
 # find all objects (blobs, trees, commits, tags) in .git/objects
 ##################################################################
 
-my @AllFiles = `find .git/objects/`;
 my @AllSha1 = ();
 
+# scan the packed files
+
+
+# scan the non-packed files
+my @AllFiles = `find .git/objects/`;
 for my $object (@AllFiles) {
 	if($object =~ /([0-9a-f][0-9a-f])\/([0-9a-f]{38})/) {
 		my $sha1 = $1 . $2;
