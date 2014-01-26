@@ -11,14 +11,23 @@ my $createBranches = $ARGV[2]; # 'y' if you want to create branches (only when s
 my @AllSha1 = ();
 
 # scan the packed files
+my @PackedFiles = `find .git/objects/pack -name 'pack-*.idx'`;
+for my $pf (@PackedFiles) {
+    push(@AllSha1, $sha1);
+}
 
-
-# scan the non-packed files
+# scan the packed and non-packed files
 my @AllFiles = `find .git/objects/`;
-for my $object (@AllFiles) {
-	if($object =~ /([0-9a-f][0-9a-f])\/([0-9a-f]{38})/) {
+for my $f (@AllFiles) {
+	if($f =~ /([0-9a-f][0-9a-f])\/([0-9a-f]{38})/) {
+        # non-packed
 		my $sha1 = $1 . $2;
 		push(@AllSha1, $sha1);
+	}
+	else if($f =~ /idx$/) {
+	    # packed 
+        my @Sha1List = `git show-index < $f | cut -f 2 -d ' '`;
+        push(@AllSha1, @Sha1List);
 	}
 }
 
