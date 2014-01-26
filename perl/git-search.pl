@@ -1,4 +1,4 @@
-#!/opt/local/bin/perl
+#!/usr/bin/perl
 
 my $type = $ARGV[0]; # 'tree' or 'blob'?
 my $pattern = $ARGV[1]; # filename to search for as regex
@@ -24,10 +24,14 @@ for my $f (@AllFiles) {
 		my $sha1 = $1 . $2;
 		push(@AllSha1, $sha1);
 	}
-	else if($f =~ /idx$/) {
+	elsif($f =~ /idx$/) {
 	    # packed 
-        my @Sha1List = `git show-index < $f | cut -f 2 -d ' '`;
-        push(@AllSha1, @Sha1List);
+        my @IndexContent = `git show-index < $f`;
+        for my $indexLine (@IndexContent) {
+            my @IndexLineParts = split(/ /, $indexLine);
+            my $sha1 = $IndexLineParts[1];
+            push(@AllSha1, $sha1);
+        }
 	}
 }
 
@@ -38,6 +42,7 @@ for my $f (@AllFiles) {
 my $ctr = 0;
 for my $foundSha1 (@AllSha1) {
 	chomp $foundSha1;
+	next if length($foundSha1) == 0;
 	my $t = `git cat-file -t $foundSha1`;
 	chomp $t;
 
@@ -51,7 +56,8 @@ for my $foundSha1 (@AllSha1) {
 				if($type eq 'tree' && $createBranches eq 'y') {
 					my $branchName = sprintf "found/%03s", $ctr;
 					printf "created branch: %s\n", $branchName;
-					`git commit-tree $foundSha1 -m "found $pattern" | xargs -I{} git branch $branchName {}`;
+					my $commitSha1 = `git commit-tree $foundSha1 -m "found $pattern"`;
+					`git branch $branchName $commitSha1`;
 				}
 				break;
 			}
